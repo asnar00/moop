@@ -3,7 +3,7 @@ matter out of place: a small drone that can pick up plastic trash
 
 ## why
 
-India has 6.7 million km of roads, Indians feel free chucking plastic trash out of their car windows, inadequate governance means it doesn't get cleaned up. Result: beautiful natural environments are choked with plastic.
+India has 6.7 million km of roads; Indian tourists generally don't think twice about chucking plastic trash out of their car windows; inadequate governance means it doesn't get cleaned up. Result: otherwise beautiful natural environments are choked with plastic.
 
 ## what
 
