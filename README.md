@@ -13,6 +13,8 @@ This project contains designs and code for a small (palm-sized), low-cost (under
 
 We're running the project on a volunteer basis. Anyone can contribute their ideas, knowledge, code, engineering skills, or connections. By the same token, anyone can use any of the intellectual property so generated to adapt the design to their own needs, create their own designs, or scale up to create their own businesses.
 
+Want to contribute? Check out our [Contributing Guide](CONTRIBUTING.md) to learn how to add files and folders to the repository.
+
 ## who
 
 A small band of plucky idiots who care about this problem and want to build something super cool. Possibly including you?
