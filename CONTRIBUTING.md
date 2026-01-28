@@ -37,7 +37,7 @@ Note: To upload files into a specific folder, first navigate to that folder in t
 - **GitHub requires files**: You cannot create an empty folder in Git/GitHub. Each folder must contain at least one file.
 - **Nested folders**: You can create multiple levels of folders by using multiple slashes: `folder1/folder2/folder3/file.txt`
 - **Best practices**: 
-  - Use lowercase letters and hyphens for multi-word folder names (e.g., `hardware-designs`)
+  - Use lowercase letters and hyphens for multi-word folder names (e.g., `user-guides`, `test-results`)
   - Single-word folders can use lowercase without hyphens (e.g., `designs`, `code`)
   - Choose descriptive names that clearly indicate the folder's purpose
   - Include a README.md in new folders to describe their contents
