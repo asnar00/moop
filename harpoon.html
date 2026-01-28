@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moop Trash Harpoon - Design Visualisation</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #16213e;
+      border-radius: 8px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .control-group label {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+    .control-group input {
+      width: 80px;
+      padding: 5px 8px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #0f0f23;
+      color: #fff;
+    }
+    .state-toggle {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .state-toggle button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .state-toggle button.active {
+      background: #e94560;
+      color: white;
+    }
+    .state-toggle button:not(.active) {
+      background: #333;
+      color: #aaa;
+    }
+    .svg-container {
+      background: #0f0f23;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    svg {
+      display: block;
+      margin: 0 auto;
+    }
+    .legend {
+      margin-top: 20px;
+      padding: 15px;
+      background: #16213e;
+      border-radius: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+    .legend-color {
+      width: 20px;
+      height: 12px;
+      border-radius: 2px;
+    }
+    .state-description {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #fff;
+      margin: 15px 0;
+      padding: 8px;
+    }
+    .state-description.firing {
+      color: #f6e05e;
+    }
+    .state-detail {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.9rem;
+      margin: 0 auto 15px auto;
+      max-width: 600px;
+      line-height: 1.4;
+    }
+    .legend-hint {
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+    .legend-item {
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .legend-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .legend-item.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .component-description {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.95rem;
+      min-height: 3em;
+      padding: 15px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Moop Trash Harpoon - Cross Section</h1>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label>Se (spring extended) mm</label>
+        <input type="number" id="Se" value="60" min="20" max="150">
+      </div>
+      <div class="control-group">
+        <label>Sc (spring compressed) mm</label>
+        <input type="number" id="Sc" value="30" min="10" max="100">
+      </div>
+      <div class="control-group">
+        <label>Barrel radius mm</label>
+        <input type="number" id="barrelRadius" value="12" min="5" max="30">
+      </div>
+      <div class="control-group">
+        <label>Shuttle radius mm</label>
+        <input type="number" id="shuttleRadius" value="8" min="3" max="25">
+      </div>
+      <div class="control-group">
+        <label>Chamber length mm</label>
+        <input type="number" id="chamberLength" value="40" min="10" max="100">
+      </div>
+      <div class="state-toggle">
+        <span>State:</span>
+        <button id="cockedBtn" class="active">Cocked</button>
+        <button id="readyBtn">Ready</button>
+        <button id="fireBtn">Fire!</button>
+        <button id="firedBtn">Fired</button>
+      </div>
+    </div>
+
+    <div id="stateDescription" class="state-description">COCKED - Spring compressed, tether tight</div>
+    <div id="stateDetail" class="state-detail">Shuttle at x=Se-Sc, held by spike, spring compressed, gripper at x=0. Ready to acquire target.</div>
+
+    <div class="svg-container">
+      <svg id="harpoonSvg" width="800" height="300"></svg>
+    </div>
+
+    <div class="legend-hint">click on item for description</div>
+    <div class="legend">
+      <div class="legend-item" data-component="barrel">
+        <div class="legend-color" style="background: #4a5568;"></div>
+        <span>Barrel</span>
+      </div>
+      <div class="legend-item" data-component="shuttle">
+        <div class="legend-color" style="background: #e94560;"></div>
+        <span>Shuttle</span>
+      </div>
+      <div class="legend-item" data-component="spring">
+        <div class="legend-color" style="background: #48bb78;"></div>
+        <span>Spring</span>
+      </div>
+      <div class="legend-item" data-component="piezo">
+        <div class="legend-color" style="background: #f6e05e;"></div>
+        <span>Piezo Spikes</span>
+      </div>
+      <div class="legend-item" data-component="filament">
+        <div class="legend-color" style="background: #63b3ed;"></div>
+        <span>Filament</span>
+      </div>
+      <div class="legend-item" data-component="gripper">
+        <div class="legend-color" style="background: #9f7aea;"></div>
+        <span>Gripper</span>
+      </div>
+      <div class="legend-item" data-component="spool">
+        <div class="legend-color" style="background: #ed8936;"></div>
+        <span>Spool/Motor</span>
+      </div>
+    </div>
+
+    <div id="componentDescription" class="component-description"></div>
+  </div>
+
+  <script>
+    // State
+    let state = {
+      Se: 60,
+      Sc: 30,
+      barrelRadius: 12,
+      shuttleRadius: 8,
+      chamberLength: 40,
+      mode: 'cocked' // 'cocked', 'ready', or 'fired'
+    };
+
+    // Scale factor (pixels per mm)
+    const scale = 4;
+    const padding = 50;
+
+    function render() {
+      const svg = document.getElementById('harpoonSvg');
+      const { Se, Sc, barrelRadius, shuttleRadius, chamberLength, mode } = state;
+      const cocked = (mode === 'cocked' || mode === 'ready' || mode === 'fire');
+      const ready = (mode === 'ready' || mode === 'fire');
+      const firing = (mode === 'fire');
+      
+      // Calculate dimensions
+      const shuttleLength = Se - Sc;
+      const totalLength = Se + chamberLength + 30; // +30 for spool area
+      const svgWidth = totalLength * scale + padding * 2;
+      const svgHeight = barrelRadius * 2 * scale + padding * 2;
+      
+      svg.setAttribute('width', svgWidth);
+      svg.setAttribute('height', svgHeight);
+      
+      const centerY = svgHeight / 2;
+      
+      // Helper: x position in SVG (x=0 is at left, we flip so muzzle is on left)
+      const xPos = (x) => padding + x * scale;
+      const yTop = (r) => centerY - r * scale;
+      const yBot = (r) => centerY + r * scale;
+
+      // Calculate shuttle position based on state
+      // When cocked, shuttle lip's square face (at x=0) contacts spike's square face
+      // So shuttle front is at x = spikeWidth (the spike protrudes into the barrel)
+      const spikeWidth = 3;
+      const spikeHeight = 4;
+      const lipWidth = 3;
+      const lipRadius = shuttleRadius + 3;
+      const shuttleX = cocked ? (Se - Sc) + spikeWidth : 0; // rear of shuttle
+      const shuttleFrontX = cocked ? spikeWidth : (-(Se - Sc)); // front of shuttle lip
+      
+      // Gripper position (attached to front of shuttle)
+      const gripperX = cocked ? spikeWidth - 5 : (-(Se - Sc) - 15);
+
+      let html = '';
+
+      // Background grid (subtle)
+      html += `<defs>
+        <pattern id="grid" width="${10 * scale}" height="${10 * scale}" patternUnits="userSpaceOnUse">
+          <path d="M ${10 * scale} 0 L 0 0 0 ${10 * scale}" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+        </pattern>
+      </defs>`;
+      html += `<rect width="100%" height="100%" fill="url(#grid)"/>`;
+
+      // Axis labels
+      html += `<text x="${xPos(0)}" y="${svgHeight - 10}" fill="#666" font-size="12" text-anchor="middle">x=0</text>`;
+      html += `<text x="${xPos(Se)}" y="${svgHeight - 10}" fill="#666" font-size="12" text-anchor="middle">x=Se</text>`;
+      html += `<text x="${xPos(Se + chamberLength)}" y="${svgHeight - 10}" fill="#666" font-size="12" text-anchor="middle">x=1</text>`;
+
+      // Barrel (outer wall) - from x=0 to x=Se+chamberLength
+      html += `<rect x="${xPos(0)}" y="${yTop(barrelRadius)}" 
+                     width="${(Se + chamberLength) * scale}" height="${barrelRadius * 2 * scale}" 
+                     fill="none" stroke="#4a5568" stroke-width="3" rx="2"/>`;
+
+      // Chamber region (lighter background)
+      html += `<rect x="${xPos(Se)}" y="${yTop(barrelRadius - 1)}" 
+                     width="${chamberLength * scale}" height="${(barrelRadius - 1) * 2 * scale}" 
+                     fill="#1a2744" opacity="0.5"/>`;
+
+      // Spring - zigzag pattern from x=Se back toward shuttle rear
+      const springStartX = Se;
+      const springEndX = cocked ? (spikeWidth + lipWidth + shuttleLength) : 0;
+      const springCoils = 8;
+      const coilWidth = (springStartX - springEndX) / springCoils;
+      const springRadius = shuttleRadius + 2;
+      
+      let springPath = `M ${xPos(springStartX)} ${centerY}`;
+      for (let i = 0; i < springCoils; i++) {
+        const x1 = springStartX - (i + 0.5) * coilWidth;
+        const x2 = springStartX - (i + 1) * coilWidth;
+        const yOff = (i % 2 === 0) ? -springRadius : springRadius;
+        springPath += ` L ${xPos(x1)} ${centerY + yOff * scale}`;
+        springPath += ` L ${xPos(x2)} ${centerY}`;
+      }
+      html += `<path d="${springPath}" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"/>`;
+
+      // Shuttle body (with lip) - hollow design
+      const wallThickness = 1.5;
+      
+      if (cocked) {
+        // Shuttle lip's left (square) face contacts spike's right (square) face at x = spikeWidth
+        // Lip extends from spikeWidth to spikeWidth + lipWidth
+        // Main body extends from lip to spring
+        
+        // Main body - hollow rectangle (outline only)
+        html += `<rect x="${xPos(spikeWidth + lipWidth)}" y="${yTop(shuttleRadius)}" 
+                       width="${shuttleLength * scale}" height="${shuttleRadius * 2 * scale}" 
+                       fill="none" stroke="#e94560" stroke-width="${wallThickness * scale}" rx="2"/>`;
+        
+        // Rear cap (solid) - where spring attaches
+        const capWidth = 2;
+        html += `<rect x="${xPos(spikeWidth + lipWidth + shuttleLength - capWidth)}" y="${yTop(shuttleRadius)}" 
+                       width="${capWidth * scale}" height="${shuttleRadius * 2 * scale}" 
+                       fill="#e94560" rx="1"/>`;
+        
+        // Lip at front (contacting spike) - square left edge, diagonal right edge
+        // Top half of lip
+        html += `<polygon points="${xPos(spikeWidth)},${yTop(lipRadius)} 
+                                  ${xPos(spikeWidth)},${centerY} 
+                                  ${xPos(spikeWidth + lipWidth)},${centerY} 
+                                  ${xPos(spikeWidth + lipWidth)},${yTop(shuttleRadius)} 
+                                  ${xPos(spikeWidth + lipWidth/2)},${yTop(lipRadius)}" 
+                          fill="#e94560"/>`;
+        // Bottom half of lip
+        html += `<polygon points="${xPos(spikeWidth)},${yBot(lipRadius)} 
+                                  ${xPos(spikeWidth)},${centerY} 
+                                  ${xPos(spikeWidth + lipWidth)},${centerY} 
+                                  ${xPos(spikeWidth + lipWidth)},${yBot(shuttleRadius)} 
+                                  ${xPos(spikeWidth + lipWidth/2)},${yBot(lipRadius)}" 
+                          fill="#e94560"/>`;
+        // Filament channel (center line through shuttle)
+        html += `<line x1="${xPos(spikeWidth)}" y1="${centerY}" x2="${xPos(spikeWidth + lipWidth + shuttleLength)}" y2="${centerY}" 
+                       stroke="#63b3ed" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+      } else {
+        // Fired: shuttle at x=0 (spring extended)
+        
+        // Main body - hollow rectangle (outline only)
+        html += `<rect x="${xPos(-shuttleLength)}" y="${yTop(shuttleRadius)}" 
+                       width="${shuttleLength * scale}" height="${shuttleRadius * 2 * scale}" 
+                       fill="none" stroke="#e94560" stroke-width="${wallThickness * scale}" rx="2"/>`;
+        
+        // Rear cap (solid) - where spring attaches
+        const capWidth = 2;
+        html += `<rect x="${xPos(-capWidth)}" y="${yTop(shuttleRadius)}" 
+                       width="${capWidth * scale}" height="${shuttleRadius * 2 * scale}" 
+                       fill="#e94560" rx="1"/>`;
+        
+        // Lip - square left edge, diagonal right edge
+        // Top half of lip
+        html += `<polygon points="${xPos(-shuttleLength - lipWidth)},${yTop(lipRadius)} 
+                                  ${xPos(-shuttleLength - lipWidth)},${centerY} 
+                                  ${xPos(-shuttleLength)},${centerY} 
+                                  ${xPos(-shuttleLength)},${yTop(shuttleRadius)} 
+                                  ${xPos(-shuttleLength - lipWidth/2)},${yTop(lipRadius)}" 
+                          fill="#e94560"/>`;
+        // Bottom half of lip
+        html += `<polygon points="${xPos(-shuttleLength - lipWidth)},${yBot(lipRadius)} 
+                                  ${xPos(-shuttleLength - lipWidth)},${centerY} 
+                                  ${xPos(-shuttleLength)},${centerY} 
+                                  ${xPos(-shuttleLength)},${yBot(shuttleRadius)} 
+                                  ${xPos(-shuttleLength - lipWidth/2)},${yBot(lipRadius)}" 
+                          fill="#e94560"/>`;
+      }
+
+      // Piezo spikes at x=0 (square face toward +x, diagonal face toward -x)
+      // Spike tapers toward center (r=0) - narrow tip, wide at barrel wall
+      
+      // Piezo flexor strips (mounted on outside of barrel, extending from x=0 toward +x)
+      // Anchored at right (x=flexorLength), free end at left (x=0) bends outward
+      const flexorLength = 12;
+      const flexorHeight = 2;
+      const flexAmount = firing ? 4 : 0; // How much the left edge bends outward
+      
+      if (firing) {
+        // Flexed state - left edge bends outward, anchored on right
+        // Top flexor (left edge lifts up/outward)
+        html += `<path d="M ${xPos(0)} ${yTop(barrelRadius + flexorHeight + flexAmount)} 
+                         Q ${xPos(flexorLength/3)} ${yTop(barrelRadius + flexorHeight + flexAmount/2)} 
+                           ${xPos(flexorLength)} ${yTop(barrelRadius + flexorHeight)}" 
+                       fill="none" stroke="#f6e05e" stroke-width="${flexorHeight * scale}"/>`;
+        // Bottom flexor (left edge drops down/outward)
+        html += `<path d="M ${xPos(0)} ${yBot(barrelRadius + flexorHeight + flexAmount)} 
+                         Q ${xPos(flexorLength/3)} ${yBot(barrelRadius + flexorHeight + flexAmount/2)} 
+                           ${xPos(flexorLength)} ${yBot(barrelRadius + flexorHeight)}" 
+                       fill="none" stroke="#f6e05e" stroke-width="${flexorHeight * scale}"/>`;
+        
+        // Spikes pulled outward and rotated to stay attached to flexor
+        // Shifted left and toward barrel center
+        const spikeLeftShift = 0.5; // reduced from 1.5 - move right
+        const spikeCenterShift = 0.5; // reduced from 1.5 - move outward
+        const tipOffsetX = 2; // tip moves right due to rotation
+        
+        // Top spike - lifted up/outward, rotated clockwise
+        html += `<polygon points="${xPos(spikeWidth + tipOffsetX/2 - spikeLeftShift)},${yTop(barrelRadius + flexAmount - spikeCenterShift)} 
+                                  ${xPos(spikeWidth - spikeLeftShift)},${yTop(barrelRadius - spikeHeight + flexAmount + 1 - spikeCenterShift)} 
+                                  ${xPos(0 + tipOffsetX - spikeLeftShift)},${yTop(barrelRadius - spikeHeight/2 + flexAmount - spikeCenterShift)} 
+                                  ${xPos(0 - spikeLeftShift)},${yTop(barrelRadius + flexAmount + flexorHeight - spikeCenterShift)}" 
+                          fill="#f6e05e"/>`;
+        
+        // Bottom spike - pulled down/outward, rotated counterclockwise
+        html += `<polygon points="${xPos(spikeWidth + tipOffsetX/2 - spikeLeftShift)},${yBot(barrelRadius + flexAmount - spikeCenterShift)} 
+                                  ${xPos(spikeWidth - spikeLeftShift)},${yBot(barrelRadius - spikeHeight + flexAmount + 1 - spikeCenterShift)} 
+                                  ${xPos(0 + tipOffsetX - spikeLeftShift)},${yBot(barrelRadius - spikeHeight/2 + flexAmount - spikeCenterShift)} 
+                                  ${xPos(0 - spikeLeftShift)},${yBot(barrelRadius + flexAmount + flexorHeight - spikeCenterShift)}" 
+                          fill="#f6e05e"/>`;
+      } else {
+        // Normal state - flat rectangles
+        // Top flexor
+        html += `<rect x="${xPos(0)}" y="${yTop(barrelRadius + flexorHeight)}" 
+                       width="${flexorLength * scale}" height="${flexorHeight * scale}" 
+                       fill="#f6e05e"/>`;
+        // Bottom flexor
+        html += `<rect x="${xPos(0)}" y="${yBot(barrelRadius)}" 
+                       width="${flexorLength * scale}" height="${flexorHeight * scale}" 
+                       fill="#f6e05e"/>`;
+        
+        // Top spike
+        html += `<polygon points="${xPos(spikeWidth)},${yTop(barrelRadius)} 
+                                  ${xPos(spikeWidth)},${yTop(barrelRadius - spikeHeight)} 
+                                  ${xPos(0)},${yTop(barrelRadius - spikeHeight/2)} 
+                                  ${xPos(0)},${yTop(barrelRadius)}" 
+                          fill="#f6e05e"/>`;
+        // Bottom spike  
+        html += `<polygon points="${xPos(spikeWidth)},${yBot(barrelRadius)} 
+                                  ${xPos(spikeWidth)},${yBot(barrelRadius - spikeHeight)} 
+                                  ${xPos(0)},${yBot(barrelRadius - spikeHeight/2)} 
+                                  ${xPos(0)},${yBot(barrelRadius)}" 
+                          fill="#f6e05e"/>`;
+      }
+
+      // Filament path (from spool through system)
+      let filamentPath;
+      if (ready) {
+        // In ready state, filament forms sine wave loops in the chamber
+        const waveAmplitude = barrelRadius * 0.8;
+        const numWaves = 4;
+        
+        // Start from spool at x=1
+        filamentPath = `M ${xPos(Se + chamberLength)} ${centerY}`;
+        
+        // Sine wave through chamber - use more segments for smoothness
+        const waveSegments = numWaves * 24; // 24 segments per wave for smoothness
+        for (let i = 0; i <= waveSegments; i++) {
+          const t = i / waveSegments; // 0 to 1 through chamber
+          const x = Se + chamberLength * (1 - t); // right to left
+          const wavePhase = t * numWaves * 2 * Math.PI;
+          const y = Math.sin(wavePhase) * waveAmplitude;
+          filamentPath += ` L ${xPos(x)} ${centerY - y * scale}`;
+        }
+        
+        // Continue straight to shuttle
+        filamentPath += ` L ${xPos(spikeWidth)} ${centerY}`;
+      } else if (cocked) {
+        // Cocked (not ready) - straight line
+        filamentPath = `M ${xPos(Se + chamberLength)} ${centerY} 
+           L ${xPos(spikeWidth)} ${centerY}`;
+      } else {
+        // Fired - extended line
+        filamentPath = `M ${xPos(Se + chamberLength)} ${centerY} 
+           L ${xPos(-shuttleLength - lipWidth - 30)} ${centerY}`;
+      }
+      html += `<path d="${filamentPath}" fill="none" stroke="#63b3ed" stroke-width="1.5" 
+                     stroke-dasharray="${cocked ? 'none' : '5,3'}"/>`;
+
+      // Spool (circle at x=1)
+      const spoolX = Se + chamberLength;
+      const spoolRadius = 10;
+      html += `<circle cx="${xPos(spoolX)}" cy="${centerY}" r="${spoolRadius * scale / 2}" 
+                       fill="none" stroke="#ed8936" stroke-width="2"/>`;
+      html += `<circle cx="${xPos(spoolX)}" cy="${centerY}" r="${3}" fill="#ed8936"/>`;
+
+      // Gripper (simple shape at front of shuttle lip - flat edge contacts shuttle)
+      const gripperSize = 8;
+      if (cocked) {
+        const gx = spikeWidth; // flush with left edge of shuttle lip
+        html += `<polygon points="${xPos(gx)},${yTop(gripperSize)} 
+                                  ${xPos(gx)},${yBot(gripperSize)} 
+                                  ${xPos(gx - gripperSize)},${centerY}" 
+                          fill="#9f7aea"/>`;
+      } else {
+        const gx = -shuttleLength - lipWidth; // flush with left edge of shuttle lip
+        html += `<polygon points="${xPos(gx)},${yTop(gripperSize)} 
+                                  ${xPos(gx)},${yBot(gripperSize)} 
+                                  ${xPos(gx - gripperSize)},${centerY}" 
+                          fill="#9f7aea"/>`;
+      }
+
+      // State label (update HTML element instead of SVG)
+      const stateLabels = {
+        'cocked': 'COCKED - Spring compressed, tether tight',
+        'ready': 'READY - Tether unspooled into chamber',
+        'fire': 'FIRE! - Piezo activated, spike retracting',
+        'fired': 'FIRED - Spring extended'
+      };
+      const stateDetails = {
+        'cocked': 'Shuttle at x=Se-Sc, held by spike, spring compressed, gripper at x=0. Drone positions and estimates distance D to target.',
+        'ready': 'Motor unspools D+Se filament into chamber as loose coils. This pre-staging enables zero-drag firing - the filament will pay out freely without spool resistance.',
+        'fire': 'Voltage applied to piezo benders. Piezos flex outward, spikes clear the shuttle path. Spring is about to fire - shuttle will accelerate through with zero friction.',
+        'fired': 'Spring has fired, shuttle accelerated through barrel. Filament pays out from chamber with zero drag. Gripper reaches target and snags waste. Motor then reels in to retrieve.'
+      };
+      const stateDescEl = document.getElementById('stateDescription');
+      stateDescEl.textContent = stateLabels[mode];
+      stateDescEl.className = 'state-description' + (firing ? ' firing' : '');
+      
+      const stateDetailEl = document.getElementById('stateDetail');
+      stateDetailEl.textContent = stateDetails[mode];
+
+      // Dimension annotations
+      // Shuttle length
+      const dimY = yBot(barrelRadius) + 25;
+      if (cocked) {
+        html += `<line x1="${xPos(0)}" y1="${dimY}" x2="${xPos(shuttleLength)}" y2="${dimY}" stroke="#888" stroke-width="1"/>`;
+        html += `<text x="${xPos(shuttleLength/2)}" y="${dimY + 12}" fill="#888" font-size="9" text-anchor="middle">Se-Sc = ${shuttleLength}mm</text>`;
+      }
+
+      svg.innerHTML = html;
+    }
+
+    // Event listeners
+    document.querySelectorAll('.controls input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        state[e.target.id] = parseFloat(e.target.value);
+        render();
+      });
+    });
+
+    document.getElementById('cockedBtn').addEventListener('click', () => {
+      state.mode = 'cocked';
+      document.getElementById('cockedBtn').classList.add('active');
+      document.getElementById('readyBtn').classList.remove('active');
+      document.getElementById('fireBtn').classList.remove('active');
+      document.getElementById('firedBtn').classList.remove('active');
+      render();
+    });
+
+    document.getElementById('readyBtn').addEventListener('click', () => {
+      state.mode = 'ready';
+      document.getElementById('readyBtn').classList.add('active');
+      document.getElementById('cockedBtn').classList.remove('active');
+      document.getElementById('fireBtn').classList.remove('active');
+      document.getElementById('firedBtn').classList.remove('active');
+      render();
+    });
+
+    document.getElementById('fireBtn').addEventListener('click', () => {
+      state.mode = 'fire';
+      document.getElementById('fireBtn').classList.add('active');
+      document.getElementById('cockedBtn').classList.remove('active');
+      document.getElementById('readyBtn').classList.remove('active');
+      document.getElementById('firedBtn').classList.remove('active');
+      render();
+    });
+
+    document.getElementById('firedBtn').addEventListener('click', () => {
+      state.mode = 'fired';
+      document.getElementById('firedBtn').classList.add('active');
+      document.getElementById('cockedBtn').classList.remove('active');
+      document.getElementById('readyBtn').classList.remove('active');
+      document.getElementById('fireBtn').classList.remove('active');
+      render();
+    });
+
+    // Component descriptions
+    const componentDescriptions = {
+      barrel: "The barrel is the cylindrical housing that contains the shuttle and spring. It extends from x=0 (muzzle) to x=1 (mount end), with the chamber region at the rear for storing pre-staged filament.",
+      shuttle: "The shuttle is a simple tube that floats inside the barrel without touching the walls (zero friction). It has a lip at the front with a square face that catches on the piezo spikes when cocked, and a ramped face that slides past them during re-cocking.",
+      spring: "A compression spring anchored at x=Se, attached to the rear of the shuttle. When compressed, it stores the energy needed to launch the gripper. The filament runs through its center.",
+      piezo: "Three piezo bender elements at 120° intervals, mounted on the barrel wall at x=0. When voltage is applied, they flex outward, retracting the spikes and releasing the shuttle. They also act as sensors - generating voltage when flexed during re-cocking to confirm latch.",
+      filament: "Dental tape or braided fishing line connecting the gripper to the spool. Before firing, the target distance (D+Se) of filament is unspooled into the chamber as loose coils, enabling zero-drag firing.",
+      gripper: "The modular end effector attached to the front of the shuttle. Contains a reed switch that triggers release when near a magnet (over the trash bin). Swappable designs for different waste types.",
+      spool: "Motor-driven spool that manages the filament. Functions: retrieve the gripper after firing, unspool filament into the chamber before firing, and pull the shuttle back to re-cock the spring."
+    };
+
+    // Legend item click handlers
+    document.querySelectorAll('.legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const component = item.dataset.component;
+        const descEl = document.getElementById('componentDescription');
+        
+        // Toggle active state
+        const wasActive = item.classList.contains('active');
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+        
+        if (wasActive) {
+          descEl.textContent = '';
+        } else {
+          item.classList.add('active');
+          descEl.textContent = componentDescriptions[component];
+        }
+      });
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
